@@ -8,6 +8,7 @@ using ApiServer.Models;
 using ApiServer.Data;
 using ApiServer.Dtos;
 using AutoMapper;
+using ApiServer.Services;
 
 namespace ApiServer.Controller
 {
@@ -17,13 +18,12 @@ namespace ApiServer.Controller
     public class ActionController : ControllerBase
     {
         
-        private readonly IGenericRepo<Student> _studentRepo ;
-        private readonly IMapper _mapper;
+        private readonly IStudentService _studentService ;
+        
 
-        public ActionController(IGenericRepo<Student> studentRepo,IMapper mapper)
+        public ActionController(IStudentService studentService)
         {
-            _studentRepo = studentRepo;
-            _mapper = mapper;
+            _studentService = studentService;
         }
 
 
@@ -31,16 +31,13 @@ namespace ApiServer.Controller
         [HttpPost("student")]
         public ActionResult<StudentReadDto> AddStudent(StudentCreateDto student)
         {
-            var studentModel = _mapper.Map<Student>(student);
-            Random random = new Random();
-            studentModel.stuCode = random.Next(1000,10000).ToString();
+            
 
-            _studentRepo.Add(studentModel);
-            _studentRepo.SaveChanges();
+            var stu = _studentService.AddStudent(student);
 
-            var stuReadDto = _mapper.Map<StudentReadDto>(studentModel);
+            
 
-            return CreatedAtAction(nameof(GetStudentById),new {id = stuReadDto.id},stuReadDto);
+            return CreatedAtAction(nameof(GetStudentById),new {id = stu.id},stu);
         }
 
         [Route("/getAllStudents")]
@@ -48,13 +45,13 @@ namespace ApiServer.Controller
         public ActionResult<IEnumerable<StudentReadDto>>  GetAllStudents()
         {
             
-            return Ok(_mapper.Map<IEnumerable<StudentReadDto>>(_studentRepo.GetAll()));
+            return Ok(_studentService.GetAllStudent());
         }
         [Route("/getStudentById/{id}")]
         [HttpGet(Name="GetStudentById") ]
         public ActionResult<Student> GetStudentById(int id)
         {
-            var student = _studentRepo.GetItemById(id);
+            var student = _studentService.GetStudentById(id);
 
             if(student == null)
             {
@@ -67,13 +64,12 @@ namespace ApiServer.Controller
         [HttpDelete("id")]
         public ActionResult DeleteStudent(int id)
         {
-            var student = _studentRepo.GetItemById(id);
-            if(student == null)
+            var success = _studentService.DeleteStudent(id);
+            if(!success )
             {
                 return NotFound();
             }
-            _studentRepo.Delete(student);
-            _studentRepo.SaveChanges();
+            
             return NoContent();
 
         }
@@ -86,20 +82,15 @@ namespace ApiServer.Controller
             {
                 return BadRequest();
             }
-            var studentModel = _mapper.Map<Student>(student);
-            _studentRepo.Update(studentModel);
+            var stu = _studentService.UpdateStudent(id,student);
 
-            try
+            if(stu == null)
             {
-                _studentRepo.SaveChanges();
-                var stuReadDto = _mapper.Map<StudentReadDto>(studentModel);
-                return Ok(stuReadDto);
+                return NotFound();
             }
-            catch (System.Exception)
-            {
-                
-               return NotFound();
-            }
+
+            return Ok(stu);
+            
            
         }
     }

@@ -14,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using ApiServer.Services;
 
 namespace ApiServer
 {
@@ -35,7 +36,7 @@ namespace ApiServer
             //     .AddEntityFrameworkStores<ApplicationDbContext,long>()
             //     .AddDefaultTokenProviders();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-            services.AddScoped(typeof(IGenericRepo<>), typeof(SqlGenericRepo<>));
+            services.AddScoped<IStudentService,StudentService>();
             services.AddControllers();
            
         }
