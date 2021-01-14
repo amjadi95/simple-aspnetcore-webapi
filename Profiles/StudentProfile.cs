@@ -8,7 +8,10 @@ namespace ApiServer.Profiles
         public PersonsProfile() 
         {
             CreateMap<Student,StudentReadDto>();
-            
+            CreateMap<StudentReadDto,Student>();  
+            CreateMap<StudentCreateDto,Student>();  
+            CreateMap<StudentUpdateDto,Student>();  
+
         }
     }
 }

@@ -10,10 +10,10 @@ namespace ApiServer.Data
 
         Entity GetItemById(int id);
         IQueryable<Entity> GetAll();
-        Entity Add(Entity person);
+        void Add(Entity person);
         void Delete(Entity entity);
 
-        Entity Update(Entity newEntity);
+        void Update(Entity newEntity);
        
     }
 }

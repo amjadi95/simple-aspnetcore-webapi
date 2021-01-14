@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net;
 using ApiServer.Models;
@@ -19,30 +20,38 @@ namespace ApiServer.Controller
         private readonly IGenericRepo<Student> _studentRepo ;
         private readonly IMapper _mapper;
 
-        public ActionController(IGenericRepo<Student> studentRepo)
+        public ActionController(IGenericRepo<Student> studentRepo,IMapper mapper)
         {
             _studentRepo = studentRepo;
+            _mapper = mapper;
         }
 
 
         [Route("/AddStudent")]
         [HttpPost("student")]
-        public ActionResult<Student> AddStudent(Student student)
+        public ActionResult<StudentReadDto> AddStudent(StudentCreateDto student)
         {
-            var stu = _studentRepo.Add(student);
-            
-            return Ok(_studentRepo.SaveChanges()? stu : null);
+            var studentModel = _mapper.Map<Student>(student);
+            Random random = new Random();
+            studentModel.stuCode = random.Next(1000,10000).ToString();
+
+            _studentRepo.Add(studentModel);
+            _studentRepo.SaveChanges();
+
+            var stuReadDto = _mapper.Map<StudentReadDto>(studentModel);
+
+            return CreatedAtAction(nameof(GetStudentById),new {id = stuReadDto.id},stuReadDto);
         }
 
         [Route("/getAllStudents")]
         [HttpGet]
-        public ActionResult<Student>  GetAllStudents()
+        public ActionResult<IEnumerable<StudentReadDto>>  GetAllStudents()
         {
             
-            return Ok(_studentRepo.GetAll());
+            return Ok(_mapper.Map<IEnumerable<StudentReadDto>>(_studentRepo.GetAll()));
         }
         [Route("/getStudentById/{id}")]
-        [HttpGet("id")]
+        [HttpGet(Name="GetStudentById") ]
         public ActionResult<Student> GetStudentById(int id)
         {
             var student = _studentRepo.GetItemById(id);
@@ -70,19 +79,21 @@ namespace ApiServer.Controller
         }
         [Route("/updatestudent/{id}")]
         [HttpPut("id")]
-        public ActionResult<Student> UpdateStudent(int id,Student student)
+        public ActionResult<StudentReadDto> UpdateStudent(int id,StudentUpdateDto student)
         {
             
-            if( id == student.id)
+            if( id != student.id)
             {
-                
+                return BadRequest();
             }
-            var updatedStudent = _studentRepo.Update(student);
+            var studentModel = _mapper.Map<Student>(student);
+            _studentRepo.Update(studentModel);
 
             try
             {
                 _studentRepo.SaveChanges();
-                return Ok(student);
+                var stuReadDto = _mapper.Map<StudentReadDto>(studentModel);
+                return Ok(stuReadDto);
             }
             catch (System.Exception)
             {

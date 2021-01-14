@@ -14,14 +14,12 @@ namespace ApiServer.Data
                 _context = context;
         }
 
-        public Entity Add(Entity entity)
+        public void Add(Entity entity)
         {
             if(entity != null)
             {
                 _context.Set<Entity>().Add(entity);
-                return entity;
-            }
-            return null;
+            }            
         }
         public void Delete(Entity entity)
         {
@@ -58,11 +56,9 @@ namespace ApiServer.Data
             }
         }
 
-        public Entity Update( Entity newEntity)
+        public void Update( Entity newEntity)
         {
-            _context.Entry(newEntity).State = EntityState.Modified;
-            return newEntity;
-            
+            _context.Entry(newEntity).State = EntityState.Modified;            
         }
     }
 }
